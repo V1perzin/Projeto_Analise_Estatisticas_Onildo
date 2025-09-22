@@ -191,5 +191,95 @@ fig4.tight_layout()
 fig4.savefig("curvas_assimetria.png", dpi=300)
 plt.show()
 
+# =========================================================
+# ONDA (CURVA SUAVE) PARA ASSIMETRIA — AJUSTADA AO g1 REAL
+# (usa Skew-Normal: f(x)=2*phi(x)*Phi(alpha*x))
+# =========================================================
+def _skewness_of_skew_normal(alpha: float) -> float:
+    # Azzalini: δ = α / sqrt(1+α²)
+    # γ1 = [(4-π)/2] * (δ*sqrt(2/π))^3 / (1 - 2δ²/π)^(3/2)
+    delta = alpha / math.sqrt(1.0 + alpha*alpha)
+    num = ((4.0 - math.pi) / 2.0) * (delta * math.sqrt(2.0 / math.pi))**3
+    den = (1.0 - (2.0 * delta*delta / math.pi))**1.5
+    return num / den
+
+def _find_alpha_for_skew(g1_target: float):
+    alphas = np.linspace(-8, 8, 3201)  # varre alpha com passo fino
+    best_alpha, best_err = 0.0, float("inf")
+    for a in alphas:
+        g1 = _skewness_of_skew_normal(a)
+        err = abs(g1 - g1_target)
+        if err < best_err:
+            best_alpha, best_err = a, err
+    return float(best_alpha), float(best_err)
+
+alpha_fit, err_alpha = _find_alpha_for_skew(assimetria)
+
+x = np.linspace(-4, 4, 1200)
+y_skew = skew_normal_pdf(x, alpha_fit)
+
+fig_a, ax_a = plt.subplots(figsize=(10, 4))
+ax_a.plot(x, y_skew, linewidth=2)
+ax_a.axhline(0, color="black", linewidth=2)
+ax_a.set_xticks([]); ax_a.set_yticks([])
+ax_a.set_title("Onda (curva suave) para Assimetria — Ajustada aos seus dados")
+ax_a.annotate(
+    f"g₁ alvo: {assimetria:.4f}\nα ajustado: {alpha_fit:.3f}\n|erro| ≈ {err_alpha:.3e}",
+    xy=(0.02, 0.98), xycoords="axes fraction", ha="left", va="top",
+    bbox=dict(boxstyle="round,pad=0.35", fc="white", ec="gray", alpha=0.9)
+)
+fig_a.tight_layout()
+fig_a.savefig("onda_assimetria_resultado.png", dpi=300)
+plt.show()
+
+# =========================================================
+# ONDA (CURVA SUAVE) PARA CURTOSE — AJUSTADA AO EXCESSO REAL
+# (usa Normal Generalizada / Exponential Power)
+# PDF (simétrica): f(x) ∝ exp(-|x/λ|^β)
+# Excesso de curtose: g2(β) = Γ(5/β)Γ(1/β) / [Γ(3/β)]² - 3
+# Obs.: para excessos muito negativos, o mínimo teórico dessa família
+# tende a ~ -1.2 quando β → ∞, então pode haver pequeno erro residual.
+# =========================================================
+from math import gamma as _gamma
+
+def _kurtosis_excess_generalized_normal(beta: float) -> float:
+    return (_gamma(5.0/beta) * _gamma(1.0/beta) / (_gamma(3.0/beta)**2)) - 3.0
+
+def _find_beta_for_kurtosis(g2_target: float):
+    # busca em β >= 2 (platicúrtica). β maior -> mais "achatada"
+    betas = np.linspace(2.01, 40.0, 6000)
+    best_beta, best_err = 3.0, float("inf")
+    for b in betas:
+        g2 = _kurtosis_excess_generalized_normal(b)
+        err = abs(g2 - g2_target)
+        if err < best_err:
+            best_beta, best_err = b, err
+    return float(best_beta), float(best_err)
+
+beta_fit, err_beta = _find_beta_for_kurtosis(curtose_excesso)
+
+def _gen_normal_pdf(x, beta: float, lam: float = 1.0):
+    x = np.asarray(x, dtype=float)
+    c = beta / (2.0 * lam * _gamma(1.0/beta))   # constante de normalização
+    return c * np.exp(- (np.abs(x/lam)**beta))
+
+x2 = np.linspace(-4, 4, 1200)
+y_kurt = _gen_normal_pdf(x2, beta_fit, lam=1.0)
+
+fig_k, ax_k = plt.subplots(figsize=(10, 4))
+ax_k.plot(x2, y_kurt, linewidth=2)
+ax_k.axhline(0, color="black", linewidth=2)
+ax_k.set_xticks([]); ax_k.set_yticks([])
+ax_k.set_title("Onda (curva suave) para Curtose — Ajustada aos seus dados")
+ax_k.annotate(
+    f"Excesso alvo: {curtose_excesso:.4f}\nβ ajustado: {beta_fit:.3f}\n|erro| ≈ {err_beta:.3e}",
+    xy=(0.02, 0.98), xycoords="axes fraction", ha="left", va="top",
+    bbox=dict(boxstyle="round,pad=0.35", fc="white", ec="gray", alpha=0.9)
+)
+fig_k.tight_layout()
+fig_k.savefig("onda_curtose_resultado.png", dpi=300)
+plt.show()
+
+
 # Rodar:
 # python main.py

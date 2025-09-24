@@ -122,37 +122,6 @@ fig2.savefig("histograma_distribuicao.png", dpi=300)
 plt.show()
 
 # =========================================================
-# Gráfico de Onda (Linha Temporal) com Assimetria + extremos
-# =========================================================
-fig3, ax3 = plt.subplots(figsize=(14, 6))
-ax3.plot(periodos, dados, marker="o", linestyle="-", label="Atos praticados")
-
-ax3.annotate(
-    f"Assimetria (g₁) = {assimetria:.3f}\nLeve cauda à direita",
-    xy=(0.01, 0.95), xycoords="axes fraction",
-    ha="left", va="top",
-    bbox=dict(boxstyle="round,pad=0.4", fc="white", ec="gray", alpha=0.8)
-)
-
-max_idx = np.argmax(dados)
-min_idx = np.argmin(dados)
-ax3.scatter(periodos[max_idx], dados[max_idx], color="red", s=100, zorder=5, label="Máximo")
-ax3.scatter(periodos[min_idx], dados[min_idx], color="green", s=100, zorder=5, label="Mínimo")
-ax3.text(max_idx, dados[max_idx] + 600, f"{periodos[max_idx]}: {dados[max_idx]:,}", color="red", ha="center")
-ax3.text(min_idx, dados[min_idx] - 1200, f"{periodos[min_idx]}: {dados[min_idx]:,}", color="green", ha="center")
-
-ax3.set_title("Atos praticados por período (Gráfico de Onda)")
-ax3.set_xlabel("Período")
-ax3.set_ylabel("Quantidade de atos")
-ax3.set_xticks(range(len(periodos)))
-ax3.set_xticklabels(periodos, rotation=45, ha="right")
-ax3.grid(True, linestyle="--", alpha=0.5)
-ax3.legend()
-fig3.tight_layout()
-fig3.savefig("grafico_onda_assimetria.png", dpi=300)
-plt.show()
-
-# =========================================================
 # Curvas teóricas no formato “suave de sino”
 # (Assimetria Negativa, Simétrica e Positiva) — compatível Py 3.13
 # =========================================================

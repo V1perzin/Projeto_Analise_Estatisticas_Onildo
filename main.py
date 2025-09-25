@@ -1,18 +1,15 @@
 from collections import Counter
-import math
 import numpy as np
 import statistics as st
 import matplotlib.pyplot as plt
+import math
 
-# =========================================================
-# Funções para Assimetria (Skewness) e Curtose (Excesso)
-# =========================================================
+# Funções estatísticas principais
 def _to_1d_array(x):
     a = np.asarray(x, dtype=float).ravel()
     return a[~np.isnan(a)]
 
 def skewness(x):
-    """Assimetria amostral (Fisher-Pearson ajustada)."""
     a = _to_1d_array(x)
     n = a.size
     if n < 3:
@@ -26,7 +23,6 @@ def skewness(x):
     return float((n * math.sqrt(n - 1)) / (n - 2) * g1)
 
 def kurtosis_excess(x):
-    """Excesso de curtose amostral (Fisher) — Normal => 0."""
     a = _to_1d_array(x)
     n = a.size
     if n < 4:
@@ -40,9 +36,7 @@ def kurtosis_excess(x):
     g2_adj = ((n - 1) / ((n - 2) * (n - 3))) * term
     return float(g2_adj)
 
-# =========================================================
-# Dados (atos praticados) e períodos
-# =========================================================
+# Dados e períodos
 dados = [
     48879, 60946, 30532, 29436, 32699, 29897, 31407, 32577,
     33981, 34406, 38188, 41169, 52124, 54673, 42255, 52969,
@@ -59,12 +53,9 @@ periodos = [
     "2022-1", "2022-2", "2023-1", "2023-2", "2024-1", "2024-2", "2025-1"
 ]
 
-# =========================================================
-# Estatísticas
-# =========================================================
+# Estatísticas principais
 media = np.mean(dados)
 mediana = np.median(dados)
-
 try:
     modas = st.multimode(dados)
 except Exception:
@@ -72,17 +63,12 @@ except Exception:
     maxf = max(cont.values())
     modas = [v for v, f in cont.items() if f == maxf]
 amodal = len(modas) == len(dados)
-
-desvio_padrao = np.std(dados, ddof=1)  # amostral
+desvio_padrao = np.std(dados, ddof=1)
 cv = (desvio_padrao / media) * 100 if media else 0.0
-
-# novas métricas
 assimetria = skewness(dados)
 curtose_excesso = kurtosis_excess(dados)
 
-# =========================================================
-# Impressão no console
-# =========================================================
+# Impressão dos resultados
 print("\n📊 Estatísticas do Cartório")
 print(f"Média: {media:,.2f} atos")
 print(f"Mediana: {mediana:,} atos")
